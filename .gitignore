@@ -1,5 +1,6 @@
 # private-date
 data-private/*
+*.html
 
 # intellij
 .idea

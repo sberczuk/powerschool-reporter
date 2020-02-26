@@ -9,7 +9,11 @@
 /*Don't break between graded */
 @media print {
     div {page-break-inside: avoid;}
+    html,body {
+        margin: 0;
+    }
 }
+
 body {
     -webkit-font-smoothing: antialiased;
     font: normal .8764em/1.5em Arial,Verdana,sans-serif;
@@ -19,13 +23,13 @@ body {
 
 /* The div the includes the course, grades, and comments*/
 .course {
-    border: 2px solid black;
-    margin: 2em;
-    padding: 0.5em;
+    border: 1px solid black;
+    margin: .25em;
+    padding: 0.25em;
 }
 
 html body {
-    font-size: 10pt;
+    font-size: 12pt;
 }
 
 li {
@@ -190,8 +194,8 @@ tr {
 }
 
 table th,table td {
-    font-size: 1.1em;
-    line-height: 23px;
+    font-size: 10pt;
+    /*line-height: 23px;*/
     padding: 0 1em;
     width:100%;
 
@@ -219,12 +223,8 @@ table tbody {
     width:100%;
 }
 .cbodyterm {
-    /* background: rgba(0,0,0,0); */
-    background: rgba(255,255,255,255);
-    /* border:1px solid black; */
-    
     vertical-align: text-top;
-    width:25%;
+    width:6em;
 }
 
 .cbodytext {
@@ -242,7 +242,7 @@ table tfoot {
 
 
 blockquote p {
-    font-size: 110%;
+    font-size: 100%;
     font-style: italic;
     line-height: 1.6em;
 }
@@ -261,7 +261,7 @@ sub {
 }
 
 p,h5 {
-    font-size: 1.1429em;
+    font-size: 1.1em;
     line-height: 1.3125em;
     margin: 1.3125em 0;
 }

@@ -42,7 +42,7 @@ class Grade:
         return f"{self.year}-{self.term}  {self.school} {self.grade_level} (code: {self.course_code}) {self.course_title}\nInstructor: {self.teacher_fn} {self.teacher_ln}\nLetter Grade: {self.letter_grade} \nGrade: {self.number_grade}\nComments:{self.comments} "
 
     def print_header(self):
-        return f"<h1>{self.course_title} (code: {self.course_code}) {self.school}</h1>\n"
+        return f"<h2>{self.course_title} (code: {self.course_code}) {self.school}</h2>\n"
 
     def print_term_grade(self):
         return f"<em>{self.year}-{self.term} {self.grade_level}</em><br/>\n<b>{self.letter_grade}</b> / <b>{self.number_grade}</b>"
@@ -112,7 +112,6 @@ def generate_year_report(student_info, year, grades_by_course, schools,terms):
         term_headers = sorted(terms)
         grades_table = generate_grades_table(course_by_term, output, term_headers)
         output.write(grades_table)
-        # output.write("<h2>Comments</h2>\n")
         comments_table = generate_comments_table(course_by_term, output, term_headers)
         output.write(comments_table)
         output.write("</div>\n")

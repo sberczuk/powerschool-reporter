@@ -1,3 +1,9 @@
+# private-date
+data-private/*
+
+# intellij
+.idea
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

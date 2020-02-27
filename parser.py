@@ -7,11 +7,13 @@ import argparse
 ns = {'ns1': 'http://www.sifinfo.org/infrastructure/2.x',
       'ns2': 'http://stumo.transcriptcenter.com'}
 
+
 class StudentInfo:
     def __init__(self, first_name, middle_name, last_name, ):
         self.last_name = last_name
         self.middle_name = middle_name
         self.first_name = first_name
+
 
 class Grade:
     """A Wrapper for a single grade"""
@@ -54,9 +56,9 @@ class Grade:
         return f"{self.teacher_fn} {self.teacher_ln}"
 
     def format_comments(self):
-         if(self.comments != None):
+        if (self.comments != None):
             return self.comments.replace('\n', ' ')
-         else:
+        else:
             return ''
 
 
@@ -98,17 +100,22 @@ def process_data(xmlDataFile):
     (grades, years) = collect_grades(root)
     return (StudentInfo(fn, mi, ln), grades, years)
 
-def generate_year_report(student_info, year, grades_by_course, schools,terms):
+
+def generate_year_report(student_info, year, grades_by_course, schools, terms):
     output = io.StringIO()
+
+    # Write Report Card Header
     output.write(f"<h1> {student_info.first_name}  {student_info.middle_name} {student_info.last_name}</h1>\n")
     output.write(f"<h1> {year}</h1>\n")
     for s in schools:
-        print(f"<h2>{s}</h2>",  file=output)
+        output.write(f"<h2>{s}</h2>")
+
     for course in grades_by_course.keys():
         output.write('<div class="course">\n')
         output.write(f"<h2>{headers_by_course.get(course)}</h2>")
-        sorted_grades_for_course = sorted(grades_by_course[course], key=lambda gg: gg.term)
-        course_by_term = organize_by_term(sorted_grades_for_course)
+        
+        course_by_term = organize_by_term(grades_by_course[course])
+
         grades_table = generate_grades_table(course_by_term, terms)
         output.write(grades_table)
         comments_table = generate_comments_table(course_by_term, terms)
@@ -136,8 +143,9 @@ def generate_grades_table(course_by_term, terms):
         output.write("</table>")
         return output.getvalue()
 
+
 def generate_comments_table(course_by_term, terms):
-    term_headers= sorted(terms)
+    term_headers = sorted(terms)
     with io.StringIO() as output:
         output.write("<table class='comments'>")
         output.write(f"<tr><th class='cbodyterm'>Term</th><th class='cbodytext'>Comments</th></tr>")
@@ -171,7 +179,9 @@ def collect_grades(root):
 
     return (all_grades, all_years)
 
-def organize_by_term(grade_list):
+
+def organize_by_term(grades):
+    grade_list = sorted(grades, key=lambda gg: gg.term)
     grades_by_term = dict()
     for grade in grade_list:
         term = grade.term
@@ -179,6 +189,7 @@ def organize_by_term(grade_list):
             grades_by_term[term] = []
         grades_by_term[term] = grade
     return grades_by_term
+
 
 def organize_grades(all_grades):
     allCoursesByName = set()
@@ -249,7 +260,6 @@ if __name__ == "__main__":
     print("output = ", basename)
     print("parsing ", args.data_file)
 
-
     valid_xml = extractValidXML(args.data_file)
     (student_info, grades, years) = process_data(args.data_file)
     years.sort()
@@ -259,9 +269,7 @@ if __name__ == "__main__":
             [a for a in grades if (a.year == year)])
         print("*******************", year, "***************")
         schools = [g.school for g in grades if (g.year == year)]
-        terms = [g.term for g in grades if(g.year == year)]
+        terms = [g.term for g in grades if (g.year == year)]
         report_text = generate_year_report(student_info, year, grades_by_course, set(schools), set(terms))
         file_name = f"{basename}-{year}.html"
         generate_html_file(file_name, report_text)
-
-

@@ -42,13 +42,13 @@ class Grade:
         return f"{self.year}-{self.term}  {self.school} {self.grade_level} (code: {self.course_code}) {self.course_title}\nInstructor: {self.teacher_fn} {self.teacher_ln}\nLetter Grade: {self.letter_grade} \nGrade: {self.number_grade}\nComments:{self.comments} "
 
     def print_header(self):
-        return f"<h2>{self.course_title} (code: {self.course_code}) {self.school}</h2>\n"
+        return f"{self.course_title} (code: {self.course_code}) {self.school}\n"
 
     def print_term_grade(self):
         return f"<em>{self.year}-{self.term} {self.grade_level}</em><br/>\n<b>{self.letter_grade}</b> / <b>{self.number_grade}</b>"
 
     def reporting_period(self):
-        return f"<h2>{self.year}-{self.term}</h2>"
+        return f"{self.year}-{self.term}"
 
     def teacher_name(self):
         return f"{self.teacher_fn} {self.teacher_ln}"
@@ -106,19 +106,19 @@ def generate_year_report(student_info, year, grades_by_course, schools,terms):
         print(f"<h2>{s}</h2>",  file=output)
     for course in grades_by_course.keys():
         output.write('<div class="course">\n')
-        output.write(headers_by_course.get(course))
+        output.write(f"<h2>{headers_by_course.get(course)}</h2>")
         sorted_grades_for_course = sorted(grades_by_course[course], key=lambda gg: gg.term)
         course_by_term = organize_by_term(sorted_grades_for_course)
-        term_headers = sorted(terms)
-        grades_table = generate_grades_table(course_by_term, output, term_headers)
+        grades_table = generate_grades_table(course_by_term, terms)
         output.write(grades_table)
-        comments_table = generate_comments_table(course_by_term, output, term_headers)
+        comments_table = generate_comments_table(course_by_term, terms)
         output.write(comments_table)
         output.write("</div>\n")
     return output.getvalue()
 
 
-def generate_grades_table(course_by_term, output2, term_headers):
+def generate_grades_table(course_by_term, terms):
+    term_headers = sorted(terms)
     with io.StringIO() as output:
         output.write("<table class='grades'>")
         output.write("<tr>")
@@ -136,22 +136,23 @@ def generate_grades_table(course_by_term, output2, term_headers):
         output.write("</table>")
         return output.getvalue()
 
-def generate_comments_table(course_by_term, output2, term_headers):
+def generate_comments_table(course_by_term, terms):
+    term_headers= sorted(terms)
     with io.StringIO() as output:
-        print("<table class='comments'>", file=output)
-        print(f"<tr><th class='cbodyterm'>Term</th><th class='cbodytext'>Comments</th></tr>", file=output)
+        output.write("<table class='comments'>")
+        output.write(f"<tr><th class='cbodyterm'>Term</th><th class='cbodytext'>Comments</th></tr>")
         for th in term_headers:
-            print(f"<tr><td class='cbodyterm'>{th}</td>", file=output)
+            output.write(f"<tr><td class='cbodyterm'>{th}</td>\n")
             if (th in course_by_term):
                 g = course_by_term[th]
                 if g.comments != None:
-                    print(f"<td class='cbodytext'>{g.format_comments()}</td>", file=output, end=" ")
+                    output.write(f"<td class='cbodytext'>{g.format_comments()}</td>")
                 else:
-                    print(f"<td class='cbodytext'></td>", file=output, end=" ")
+                    output.write(f"<td class='cbodytext'></td>")
 
             else:
-                print(f"<td class='cbodytext'></td>", file=output, end=" ")
-        print("</table>", file=output)
+                output.write(f"<td class='cbodytext'></td>")
+        output.write("</table>")
         return output.getvalue()
 
 

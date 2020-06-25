@@ -24,7 +24,9 @@ class Grade:
         self.teacher_fn = teacher_fn
         self.comments = comments
         self.number_grade = number_grade
-        self.letter_grade = letter_grade
+
+        # Special case for the Pandemic special grading
+        self.letter_grade =  letter_grade if letter_grade is not None else "n/a"
         self.course_title = title
         self.course_code = course_code
         self.term = term
@@ -70,14 +72,12 @@ def process_course(course, year):
     letter_grade = mark_data.find("ns1:Letter", ns).text
     number_grade = mark_data.find("ns1:Percentage", ns).text
     comments = mark_data.find("ns1:Narrative", ns).text
-
     # get extended info
     extended_info = course.find("ns1:SIF_ExtendedElements", ns)
     term = extended_info.find("ns1:SIF_ExtendedElement[@Name='StoreCode']", ns).text
     teacher_fn = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorFirstName']", ns).text
     teacher_ln = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorLastName']", ns).text
     school_name = extended_info.find("ns1:SIF_ExtendedElement[@Name='SchoolName']", ns).text
-
     return Grade(year, grade_level, term, course_code, title, letter_grade, number_grade, comments, teacher_fn,
                  teacher_ln, school_name)
 
@@ -113,7 +113,7 @@ def generate_year_report(student_info, year, grades_by_course, schools, terms):
     for course in grades_by_course.keys():
         output.write('<div class="course">\n')
         output.write(f"<h2>{headers_by_course.get(course)}</h2>")
-        
+
         course_by_term = organize_by_term(grades_by_course[course])
 
         grades_table = generate_grades_table(course_by_term, terms)
@@ -227,7 +227,7 @@ def parse_file(f):
             skip = False
         if not skip:
             # This is a known issue: last line being incomplete
-            if (line.startswith('</StudentRecord') and line != '</StudentRecordExchangeData>'):
+            if (line.startswith('</StudentRec') and line != '</StudentRecordExchangeData>'):
                 line = '</StudentRecordExchangeData>'
             result = result + line
     return result

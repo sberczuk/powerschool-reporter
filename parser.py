@@ -89,8 +89,7 @@ def format_as_markdown(grades):
     pass
 
 
-def process_data(xmlDataFile):
-    xml_string = extractValidXML(xmlDataFile)
+def process_data(xml_string):
     root = ET.fromstring(xml_string)
     ns_name = '{0}StudentDemographicRecord/{0}StudentPersonalData/{0}Name'.format('ns1:')
     name = root.find(ns_name, namespaces=ns)
@@ -261,7 +260,7 @@ if __name__ == "__main__":
     print("parsing ", args.data_file)
 
     valid_xml = extractValidXML(args.data_file)
-    (student_info, grades, years) = process_data(args.data_file)
+    (student_info, grades, years) = process_data(valid_xml)
     years.sort()
 
     for year in years:

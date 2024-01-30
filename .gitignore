@@ -1,5 +1,8 @@
 # private-date
 data-private/*
+
+.DS_Store
+
 *.html
 
 # intellij

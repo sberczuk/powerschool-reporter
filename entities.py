@@ -6,11 +6,18 @@ class Student:
         self.middle_name = middle_name
         self.family_name = family_name
 
+    def display_name(self):
+        return "{0.given_name} {0.middle_name} {0.family_name}".format(self)
+
 class Teacher:
     def __init__(self,  given_name, family_name, school):
         self.given_name = given_name
         self.family_name = family_name
         self.school = school
+
+    def display_name(self):
+        return "{0.given_name} {0.family_name}".format(self)
+
 class MarkingPeriod:
     def __init__(self, course,grade, percent,  days_absent, comments):
 
@@ -19,6 +26,11 @@ class MarkingPeriod:
         self.percent = percent
         self.days_absent = days_absent
         self.comments = comments
+
+class Term:
+    def __init__(self,year):
+        self.year = year
+        self.grades = []
 
 class Course:
     def __init__(self, school_year, grade_level, period, course_code, course_title, teacher):
@@ -40,9 +52,10 @@ class Grade:
         self.course = course
         self.grade_details = grade_details
 class Grades:
-    def __init__(self, student, grades):
+    def __init__(self, student, terms):
         self.student = student
-        self.grades = grades
+        self.terms = terms
+
 
 
 

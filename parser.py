@@ -3,34 +3,13 @@
 import xml.etree.ElementTree as ET
 import argparse
 
-from entities import Student, Course, Teacher, Grade, GradeDetails, Grades
+from entities import Student, Course, Teacher, Grade, GradeDetails, Grades,Term
 
 ns = {'ns1': 'http://www.sifinfo.org/infrastructure/2.x',
       'ns2': 'http://stumo.transcriptcenter.com'}
 
 
 
-def process_course(course_node, year):
-    extended_info = course_node.find("ns1:SIF_ExtendedElements", ns)
-    term = extended_info.find("ns1:SIF_ExtendedElement[@Name='StoreCode']", ns).text
-    teacher_fn = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorFirstName']", ns).text
-    teacher_ln = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorLastName']", ns).text
-    school_name = extended_info.find("ns1:SIF_ExtendedElement[@Name='SchoolName']", ns).text
-    teacher = Teacher(teacher_fn, teacher_ln, school_name)
-
-    course_title = course_node.find(".//ns1:CourseTitle", ns).text
-    course_code = course_node.find(".//ns1:CourseCode", ns).text
-    grade_level = course_node.find(".//ns1:GradeLevelWhenTaken/ns1:Code", ns).text
-    course = Course(year, grade_level, term, course_code, course_title, teacher)
-
-    mark_data = course_node.find(".//ns1:MarkData", ns)
-    letter_grade = mark_data.find("ns1:Letter", ns).text
-    number_grade = mark_data.find("ns1:Percentage", ns).text
-    comments = mark_data.find("ns1:Narrative", ns).text
-
-    details = GradeDetails(letter_grade,number_grade, comments)
-
-    return Grade(course, details)
 
 
 
@@ -42,21 +21,23 @@ def format_as_markdown(grades):
 
 
 def process_data(xml_string):
+    """Process all the data iin the XML file"""
     root = ET.fromstring(xml_string)
     student = parse_element(root, '{0}:StudentDemographicRecord'.format("ns1"), parse_student)
+    terms = parse_element(root, '{0}:StudentAcademicRecord/{0}:CourseHistory'.format('ns1'), parse_terms)
 
-    grades = parse_element(root, '{0}:StudentAcademicRecord/{0}:CourseHistory'.format('ns1'), parse_courses)
-
-    return Grades(student, grades)
+    return Grades(student, terms)
 
 
 def parse_element(root, path, function):
+    """given an xpath to an element, find it, and apply function to it"""
     node = root.find(path, namespaces=ns)
     entity = function(node)
     return entity
 
 
 def parse_student(root):
+    """parse the element with student data and return  a Student object"""
     ns_name = '{0}StudentPersonalData/{0}Name'.format('ns1:')
     name = root.find(ns_name, namespaces=ns)
     fn = name.find("ns1:FirstName", namespaces=ns).text
@@ -65,15 +46,47 @@ def parse_student(root):
     return Student(fn, mi, ln)
 
 
-def parse_courses(root):
+def process_course(course_node, year):
+    """Process an  individual course element"""
+    extended_info = course_node.find("ns1:SIF_ExtendedElements", ns)
+    term_id = extended_info.find("ns1:SIF_ExtendedElement[@Name='StoreCode']", ns).text
+    teacher_fn = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorFirstName']", ns).text
+    teacher_ln = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorLastName']", ns).text
+    school_name = extended_info.find("ns1:SIF_ExtendedElement[@Name='SchoolName']", ns).text
+    teacher = Teacher(teacher_fn, teacher_ln, school_name)
+
+    course_title = course_node.find(".//ns1:CourseTitle", ns).text
+    course_code = course_node.find(".//ns1:CourseCode", ns).text
+    grade_level = course_node.find(".//ns1:GradeLevelWhenTaken/ns1:Code", ns).text
+    course = Course(year, grade_level, term_id, course_code, course_title, teacher)
+
+    mark_data = course_node.find(".//ns1:MarkData", ns)
+    letter_grade = mark_data.find("ns1:Letter", ns).text
+    number_grade = mark_data.find("ns1:Percentage", ns).text
+    comments = mark_data.find("ns1:Narrative", ns).text
+
+    details = GradeDetails(letter_grade,number_grade, comments)
+
+    return Grade(course, details)
+
+
+def parse_terms(root):
+    """parse the sub elements of Course History, which has the grade info. Returns
+    a list of Grade objects"""
     # Path  from StudentAcademicRecord/CourseHistory
-    term_node = root.find("{0}Term".format("ns1:"), ns)
-    school_year = term_node.find("{0}TermInfoData/{0}SchoolYear".format("ns1:"), ns).text
-    courses_node = term_node.find("{0}Courses".format("ns1:"), ns)
-    grades = []
-    for c in courses_node.findall("{0}:Course".format("ns1"), ns):
-        grades.append(process_course(c, school_year))
-    return grades
+    terms = []
+    term_nodes = root.findall("{0}Term".format("ns1:"), ns)
+    for term_node in term_nodes:
+        school_year = term_node.find("{0}TermInfoData/{0}SchoolYear".format("ns1:"), ns).text
+
+        term = Term(school_year)
+        courses_node = term_node.find("{0}Courses".format("ns1:"), ns)
+        grades = []
+        for c in courses_node.findall("{0}:Course".format("ns1"), ns):
+            grades.append(process_course(c, school_year))
+        term.grades = grades
+        terms.append(term)
+    return terms
 
 
 def collect_grades(root):
@@ -174,11 +187,15 @@ if __name__ == "__main__":
     print("parsing ", args.data_file)
 
     valid_xml = extractValidXML(args.data_file)
-    (student_info, grades, years) = process_data(valid_xml)
-    years.sort()
+    grades = process_data(valid_xml)
 
-    for year in years:
-        (grades_by_course, grades_by_period, headers_by_course) = organize_grades(
-            [a for a in grades if (a.year == year)])
-        print("*******************", year, "***************")
+    # collect all the years
+    years = [t.year for t in grades.terms]
+
+    student_name = grades.student.display_name()
+    for t in grades.terms:
+        year = t.year
+        file_name = f"{basename}-{year}.html"
+        print("*******************", year, student_name ,"***************")
+
         generate_html_file(file_name, report_text)

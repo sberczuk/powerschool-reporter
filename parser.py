@@ -9,10 +9,6 @@ ns = {'ns1': 'http://www.sifinfo.org/infrastructure/2.x',
       'ns2': 'http://stumo.transcriptcenter.com'}
 
 
-
-
-
-
 # Placeholder for markdown format for a list of grades
 # Take the list and sort it with appropriate headers.
 # TBD if we need to figure pass in meta data, whether we figure it out, or if we make assumptions.
@@ -89,21 +85,6 @@ def parse_terms(root):
     return terms
 
 
-def collect_grades(root):
-    all_grades = []
-    all_years = []
-    findall = root.findall(".//ns1:Term", ns)
-    for term in findall:
-        year = term[0][0].text
-        if year not in all_years:
-            all_years.append(year)
-        for courses in term.iter("{http://www.sifinfo.org/infrastructure/2.x}Courses"):
-            for course in courses:
-                grade = process_course(course, term, year)
-                all_grades.append(grade)
-
-    return (all_grades, all_years)
-
 
 def organize_by_term(grades):
     grade_list = sorted(grades, key=lambda gg: gg.term)
@@ -115,26 +96,6 @@ def organize_by_term(grades):
         grades_by_term[term] = grade
     return grades_by_term
 
-
-def organize_grades(all_grades):
-    allCoursesByName = set()
-    grades_by_course = dict()
-    grades_by_period = dict()
-    header_by_course = dict()
-
-    for grade in all_grades:
-        period = grade.reporting_period()
-        allCoursesByName.add(grade.course_title)
-        course_code = grade.course_code
-        if course_code not in grades_by_course:
-            grades_by_course[course_code] = []
-        if period not in grades_by_period:
-            grades_by_period[period] = []
-
-        grades_by_period[period].append(grade)
-        grades_by_course[course_code].append(grade)
-        header_by_course[course_code] = grade.print_header()
-    return (grades_by_course, grades_by_period, header_by_course)
 
 
 def extractValidXML(inFile):
@@ -176,12 +137,14 @@ def generate_text(grades, year):
 
 def generate_report(grades):
     student_name = grades.student.display_name()
-    for t in grades.terms:
+    sorted_terms = sorted(grades.terms, key=lambda t:  t.year)
+    for t in  sorted_terms:
         year = t.year
         file_name = f"{basename}-{year}.html"
         print("*******************", year, student_name, "***************")
         report_text = ""
-        for g in t.grades:
+        l = sorted(t.grades, key=lambda grade: grade.term.year + grade.course.course_code + grade.course.period)
+        for g in l:
             print(g)
             #generate_text(grades, year))
         generate_html_file(file_name, report_text)

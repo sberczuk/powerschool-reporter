@@ -1,6 +1,6 @@
 import io
 
-from parser import headers_by_course, organize_by_term
+from parser import organize_by_term
 
 
 def generate_grades_table(course_by_term, terms):

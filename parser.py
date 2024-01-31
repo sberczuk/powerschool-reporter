@@ -46,7 +46,7 @@ def parse_student(root):
     return Student(fn, mi, ln)
 
 
-def process_course(course_node, year):
+def process_course(course_node, term, year):
     """Process an  individual course element"""
     extended_info = course_node.find("ns1:SIF_ExtendedElements", ns)
     term_id = extended_info.find("ns1:SIF_ExtendedElement[@Name='StoreCode']", ns).text
@@ -67,7 +67,7 @@ def process_course(course_node, year):
 
     details = GradeDetails(letter_grade,number_grade, comments)
 
-    return Grade(course, details)
+    return Grade(course, term, details)
 
 
 def parse_terms(root):
@@ -83,7 +83,7 @@ def parse_terms(root):
         courses_node = term_node.find("{0}Courses".format("ns1:"), ns)
         grades = []
         for c in courses_node.findall("{0}:Course".format("ns1"), ns):
-            grades.append(process_course(c, school_year))
+            grades.append(process_course(c, term, school_year))
         term.grades = grades
         terms.append(term)
     return terms
@@ -99,7 +99,7 @@ def collect_grades(root):
             all_years.append(year)
         for courses in term.iter("{http://www.sifinfo.org/infrastructure/2.x}Courses"):
             for course in courses:
-                grade = process_course(course, year)
+                grade = process_course(course, term, year)
                 all_grades.append(grade)
 
     return (all_grades, all_years)
@@ -170,6 +170,23 @@ def generate_html_file(file_name, body_text):
         f.write("\n</body>\n</html>")
 
 
+def generate_text(grades, year):
+    pass
+
+
+def generate_report(grades):
+    student_name = grades.student.display_name()
+    for t in grades.terms:
+        year = t.year
+        file_name = f"{basename}-{year}.html"
+        print("*******************", year, student_name, "***************")
+        report_text = ""
+        for g in t.grades:
+            print(g)
+            #generate_text(grades, year))
+        generate_html_file(file_name, report_text)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Report Card Generator.')
 
@@ -190,12 +207,4 @@ if __name__ == "__main__":
     grades = process_data(valid_xml)
 
     # collect all the years
-    years = [t.year for t in grades.terms]
-
-    student_name = grades.student.display_name()
-    for t in grades.terms:
-        year = t.year
-        file_name = f"{basename}-{year}.html"
-        print("*******************", year, student_name ,"***************")
-
-        generate_html_file(file_name, report_text)
+    generate_report(grades)

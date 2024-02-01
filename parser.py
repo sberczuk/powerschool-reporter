@@ -138,15 +138,26 @@ def generate_text(grades, year):
 def generate_report(grades):
     student_name = grades.student.display_name()
     sorted_terms = sorted(grades.terms, key=lambda t:  t.year)
-    for t in  sorted_terms:
-        year = t.year
-        file_name = f"{basename}-{year}.html"
-        print("*******************", year, student_name, "***************")
-        report_text = ""
-        l = sorted(t.grades, key=lambda grade: grade.term.year + grade.course.course_code + grade.course.period)
-        for g in l:
-            print(g)
-            #generate_text(grades, year))
+    terms_by_year = {}
+    for t in sorted_terms:
+        terms_by_year[t.year] = terms_by_year.get(t.year, [])
+        terms_by_year[t.year].append(t)
+    print (terms_by_year)
+    # group terms by year
+
+
+    for y in  terms_by_year.keys():
+        ts = terms_by_year.get(y)
+        print("*******************", y, student_name, "***************")
+
+        for t in ts:
+            year = t.year
+            file_name = f"{basename}-{year}.html"
+            report_text = ""
+            l = sorted(t.grades, key=lambda grade: grade.term.year + grade.course.course_code + grade.course.period)
+            for g in l:
+                print(g)
+                #generate_text(grades, year))
         generate_html_file(file_name, report_text)
 
 
@@ -168,6 +179,7 @@ if __name__ == "__main__":
 
     valid_xml = extractValidXML(args.data_file)
     grades = process_data(valid_xml)
+
 
     # collect all the years
     generate_report(grades)

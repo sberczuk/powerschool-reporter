@@ -4,6 +4,7 @@ class Student:
         self.middle_name = middle_name
         self.family_name = family_name
 
+    @property
     def display_name(self):
         return "{0.given_name} {0.middle_name} {0.family_name}".format(self)
 
@@ -14,6 +15,7 @@ class Teacher:
         self.family_name = family_name
         self.school = school
 
+    @property
     def display_name(self):
         return "{0.given_name} {0.family_name}".format(self)
 
@@ -25,6 +27,9 @@ class MarkingPeriod:
         self.percent = percent
         self.days_absent = days_absent
         self.comments = comments
+
+    def __str__(self):
+        return "{0.course.course_title} - {0.course.period} - {0.grade} - {0.days_absent} - {0.comments}".format(self)
 
 
 class Term:
@@ -47,7 +52,19 @@ class GradeDetails:
     def __init__(self, letter_grade, number_grade, comments):
         self.letter_grade = letter_grade
         self.number_grade = number_grade
+        self.percent = number_grade
         self.comments = comments
+
+    def __str__(self):
+        return "{} {} {}".format(self.letter_grade, self.number_grade, self.display_comments)
+    @property
+    def display_comments(self):
+        if self.comments == None:
+            return ""
+        else:
+            return self.comments
+
+
 
 
 class Grade:
@@ -58,8 +75,6 @@ class Grade:
 
     def __str__(self) -> str:
         return f"{self.term.year}-{self.course.period} (code: {self.course.course_code}) {self.course.course_title} {self.grade_details.letter_grade}, {self.grade_details.number_grade}, {self.grade_details.comments}, {self.course.teacher.display_name()},  {self.course.teacher.school}"
-
-
 
     def format_comments(self):
         if (self.grade_details.comments != None):

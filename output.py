@@ -1,8 +1,20 @@
 import io
+import string
 
 from parser import organize_by_term
 
 
+
+
+grade_template = """<div class='course-title'>{0.course.course_title}</div>
+<div class='course-period'>{0.course.period}</div>
+<div class='letter-grade'>{0.grade_details.letter_grade}</div>
+<div class='teacher-name'>{0.course.teacher.display_name}</div>
+<div class='period-comments'>{0.grade_details.display_comments}</div>
+"""
+def format_grade(t):
+    return  grade_template.format(t)
+    # string.Template(templ).substitute(t)
 def generate_grades_table(course_by_term, terms):
     term_headers = sorted(terms)
     with io.StringIO() as output:

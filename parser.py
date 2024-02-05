@@ -3,7 +3,8 @@
 import xml.etree.ElementTree as ET
 import argparse
 
-from entities import Student, Course, Teacher, Grade, GradeDetails, Grades,Term
+from entities import Student, Course, Teacher, Grade, MarkingPeriod, Grades, Term
+import output
 
 ns = {'ns1': 'http://www.sifinfo.org/infrastructure/2.x',
       'ns2': 'http://stumo.transcriptcenter.com'}
@@ -60,9 +61,10 @@ def process_course(course_node, term, year):
     letter_grade = mark_data.find("ns1:Letter", ns).text
     number_grade = mark_data.find("ns1:Percentage", ns).text
     comments = mark_data.find("ns1:Narrative", ns).text
+    days_absent = course_node.find(".//ns1:DaysAbsent", ns).text
 
-    details = GradeDetails(letter_grade,number_grade, comments)
-
+    # details = GradeDetails(letter_grade,number_grade, comments)
+    details = MarkingPeriod(course, letter_grade, number_grade, days_absent, comments)
     return Grade(course, term, details)
 
 
@@ -85,7 +87,6 @@ def parse_terms(root):
     return terms
 
 
-
 def organize_by_term(grades):
     grade_list = sorted(grades, key=lambda gg: gg.term)
     grades_by_term = dict()
@@ -95,7 +96,6 @@ def organize_by_term(grades):
             grades_by_term[term] = []
         grades_by_term[term] = grade
     return grades_by_term
-
 
 
 def extractValidXML(inFile):
@@ -136,29 +136,75 @@ def generate_text(grades, year):
 
 
 def generate_report(grades):
-    student_name = grades.student.display_name()
-    sorted_terms = sorted(grades.terms, key=lambda t:  t.year)
-    terms_by_year = {}
+    student_name = grades.student.display_name
+    sorted_terms = sorted(grades.terms, key=lambda t: t.year)
+    grades_by_year = {}
     for t in sorted_terms:
-        terms_by_year[t.year] = terms_by_year.get(t.year, [])
-        terms_by_year[t.year].append(t)
-    print (terms_by_year)
+        grades_by_year[t.year] = grades_by_year.get(t.year, [])
+        grades_by_year[t.year].extend(t.grades)
+    print(grades_by_year)
     # group terms by year
-
-
-    for y in  terms_by_year.keys():
-        ts = terms_by_year.get(y)
+    for y in grades_by_year.keys():
+        ts = grades_by_year.get(y)
         print("*******************", y, student_name, "***************")
+        print(ts)
 
-        for t in ts:
-            year = t.year
-            file_name = f"{basename}-{year}.html"
-            report_text = ""
-            l = sorted(t.grades, key=lambda grade: grade.term.year + grade.course.course_code + grade.course.period)
-            for g in l:
-                print(g)
-                #generate_text(grades, year))
+        year = y
+
+        grade_map_for_year = {}
+        for g in ts:
+            # todo: is this idiomatic?
+            grade_map_for_year[g.course.course_title] = grade_map_for_year.get(g.course.course_title, [])
+            grade_map_for_year[g.course.course_title].append(g)
+
+        print(grade_map_for_year)
+        file_name = f"{basename}-{year}.html"
+
+        #  below   returns a string?
+        report_text  = generate_year_report(year, grade_map_for_year)
         generate_html_file(file_name, report_text)
+
+
+def get_grade_html(grade_details):
+    period = grade_details.course.period.lower()
+    s = """
+    <div class='{1}'>{0.course.period}</div>
+     <div class='grade-{1}'>{0.grade}</div> 
+     <div class='absent-{1}'> days absent {0.days_absent}</div>
+    <div class='comments-{1}'>{0.comments}</div>""".format(grade_details, period)
+
+    return s
+
+
+def generate_year_report(year, grade_map_for_year):
+    for s in grade_map_for_year.keys():
+        print(s)
+        term_grades = grade_map_for_year.get(s)
+        # get unique subjects for each year
+        courses_for_term = set([g.course.course_title for g in term_grades])
+
+        # filter for courses in this term
+        course_grades_for_term = [g for g in term_grades if g.course.course_title in courses_for_term]
+        # for each subject, sort by term
+        report_text  = ""
+        #  collect the grades for each course
+        for n in courses_for_term:
+            subject_grades = [g for g in course_grades_for_term if g.course.course_title == n]
+
+            subject_grades.sort(key=lambda t: t.grade_details.course.period)
+
+            report_text  += get_term_subject_grade_html(n, subject_grades)
+            print(report_text)
+        return  report_text
+
+def get_term_subject_grade_html(subject, subject_grades):
+    s = """<div class='grid-container'>
+            <div class='course-title'>{0}</div>""".format(subject)
+    print(s)
+    for gg in subject_grades:
+        s+=get_grade_html(gg.grade_details)
+    s+="</div>"
+    return  s
 
 
 if __name__ == "__main__":
@@ -179,7 +225,6 @@ if __name__ == "__main__":
 
     valid_xml = extractValidXML(args.data_file)
     grades = process_data(valid_xml)
-
-
-    # collect all the years
+    # group grades by course code?
+    # for each term we want a map of course info -> grade
     generate_report(grades)

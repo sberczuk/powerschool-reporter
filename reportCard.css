@@ -11,6 +11,125 @@
     }
 }
 
+
+ .grid-container {
+            display: grid;
+            grid-template-areas:
+                    'title title title title  title'
+                    'q1 q2 q3 q4 y1'
+                    'q1grade q2grade q3grade q4grade y1grade'
+                    'q1absent q2absent q3absent q4absent y1absent'
+                    'q1comment q1comment q1comment q1comment q1comment'
+                    'q2comment q2comment q2comment q2comment q2comment';
+        'q3comment q3comment q3comment q3comment q3comment';
+        'q4comment q4comment q4comment q4comment q4comment';
+        'y1comment y1comment y1comment y1comment y1comment';
+            column-gap: 10px;
+        }
+
+        .grid-item {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            font-size: 30px;
+            text-align: center;
+        }
+
+        .course-title {
+            grid-area: title;
+        }
+
+        .q1 {
+            grid-area: q1;
+        }
+
+        .grade-q1 {
+            grid-area: q1grade;
+        }
+
+        .absent-q1 {
+            grid-area: q1absent;
+        }
+
+        .comments-q1 {
+            grid-area: q1comment;
+        }
+
+        .q2 {
+            grid-area: q2;
+        }
+
+        .comments-q2 {
+            grid-area: q2comment;
+        }
+
+        .grade-q2 {
+            grid-area: q2grade;
+        }
+
+        .absent-q2 {
+            grid-area: q2absent;
+        }
+
+
+
+        .q3 {
+            grid-area: q3;
+        }
+
+        .comment-q3 {
+            grid-area: q3comment;
+        }
+
+        .q3grade {
+            grid-area: q3grade;
+        }
+
+        .q3absent {
+            grid-area: q3absent;
+        }
+
+        .q3comment {
+            grid-area: q3comment;
+        }
+
+        .q4 {
+            grid-area: q4;
+        }
+
+        .q4comment {
+            grid-area: q4comment;
+        }
+
+        .q4grade {
+            grid-area: q4grade;
+        }
+
+        .q4absent {
+            grid-area: q4absent;
+        }
+
+        .q4comment {
+            grid-area: q4comment;
+        }
+
+        .y1 {
+            grid-area: y1;
+        }
+
+        .comments-y1 {
+            grid-area: y1comment;
+        }
+
+        .grade-y1 {
+            grid-area: y1grade;
+        }
+
+        .absent-y1 {
+            grid-area: y1absent;
+        }
+
+
 body {
     -webkit-font-smoothing: antialiased;
     font: normal .8764em/1.5em Arial,Verdana,sans-serif;

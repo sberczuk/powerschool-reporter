@@ -163,10 +163,10 @@ def generate_report(grades):
 def get_grade_html(grade_details):
     period = grade_details.course.period.lower()
     s = """
-    <div class='{1}'>{0.course.period}</div>
-     <div class='grade-{1}'>{0.grade}</div> 
-     <div class='absent-{1}'> days absent {0.days_absent}</div>
-    <div class='comments-{1}'>{0.display_comments}</div>""".format(grade_details, period)
+    <div class='{1} period'>{0.course.period}</div>
+    <div class='grade-{1} grades'>{0.grade}/{0.percent}</div> 
+    <div class='absent-{1} grades'> days absent {0.days_absent}</div>
+    <div class='comments-{1}  comments'>{0.display_comments}</div>""".format(grade_details, period)
 
     return s
 
@@ -189,7 +189,8 @@ def generate_year_report(student, year, grade_map_for_year):
 
 
 def get_term_subject_grade_html(subject, subject_grades):
-    s = """<div class='grid-container'><div class='course-title'>{0}</div>""".format(subject)
+    code =  subject_grades[0].course.course_code
+    s = """<div class='grid-container'><div class='course-title course'>{0}  - {1}</div>""".format(subject,  code)
     for gg in subject_grades:
         s += get_grade_html(gg.grade_details)
     s += "</div>"

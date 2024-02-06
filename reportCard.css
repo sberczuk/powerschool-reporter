@@ -30,9 +30,10 @@
                     'y1comment y1comment y1comment y1comment y1comment';
     column-gap: 10px;
 
-    border: 1px solid black;
     border-collapse: collapse;
     border-style: dotted;
+    /*empty-cells: hide;*/
+    padding: 0;
 }
 
 .grid-item {
@@ -41,6 +42,11 @@
     padding: 20px;
     font-size: 30px;
     text-align: center;
+}
+
+.period {
+    text-align: center;
+    font-weight: bold;
 }
 
 .course-title {
@@ -139,6 +145,7 @@ body {
 /* The div the includes the course, grades, and comments*/
 .course {
     border: 1px solid black;
+    font-weight: bold ;
     margin: .25em;
     padding: 0.25em;
 }
@@ -262,12 +269,9 @@ table {
 }
 
 .grades {
-    border: 1px solid black;
+    border: 1px dotted black;
     border-collapse: collapse;
-    border-style: dotted;
-    display: table;
     empty-cells: hide;
-    margin: -1px 0 23px;
     padding: 0;
     table-layout: fixed;
     width: 100%;
@@ -335,6 +339,8 @@ table tbody {
 
 .comments {
     width: 100%;
+    border: 1px dotted black;
+    border-collapse: collapse;
 }
 
 .cbodyterm {

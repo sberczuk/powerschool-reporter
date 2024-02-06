@@ -155,7 +155,7 @@ def generate_report(grades):
         file_name = f"{basename}-{year}.html"
 
         #  below   returns a string?
-        report_text = generate_year_report(year, grade_map_for_year)
+        report_text = generate_year_report(grades.student, year, grade_map_for_year)
         generate_html_file(file_name, report_text)
         print("generated  file file://{0}".format(file_name))
 
@@ -166,13 +166,13 @@ def get_grade_html(grade_details):
     <div class='{1}'>{0.course.period}</div>
      <div class='grade-{1}'>{0.grade}</div> 
      <div class='absent-{1}'> days absent {0.days_absent}</div>
-    <div class='comments-{1}'>{0.comments}</div>""".format(grade_details, period)
+    <div class='comments-{1}'>{0.display_comments}</div>""".format(grade_details, period)
 
     return s
 
 
-def generate_year_report(year, grade_map_for_year):
-    report_text = ""
+def generate_year_report(student, year, grade_map_for_year):
+    report_text = "<h1>{0.display_name} - {1}</h1>".format(student, year)
     print("YEAR REPORT ", year)
     for s in grade_map_for_year.keys():
         term_grades_for_subject = grade_map_for_year.get(s)

@@ -31,6 +31,12 @@ class MarkingPeriod:
     def __str__(self):
         return "{0.course.course_title} - {0.course.period} - {0.grade} - {0.days_absent} - {0.comments}".format(self)
 
+    @property
+    def display_comments(self):
+        if self.comments == None:
+            return "-"
+        else:
+            return self.comments
 
 class Term:
     def __init__(self, year):
@@ -60,7 +66,7 @@ class GradeDetails:
     @property
     def display_comments(self):
         if self.comments == None:
-            return ""
+            return "-"
         else:
             return self.comments
 

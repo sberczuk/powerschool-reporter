@@ -161,7 +161,7 @@ def generate_report(grades):
         file_name = f"{basename}-{year}.html"
 
         #  below   returns a string?
-        report_text  = generate_year_report(year, grade_map_for_year)
+        report_text = generate_year_report(year, grade_map_for_year)
         generate_html_file(file_name, report_text)
 
 
@@ -177,34 +177,35 @@ def get_grade_html(grade_details):
 
 
 def generate_year_report(year, grade_map_for_year):
+    report_text = ""
+    print("YEAR REPORT ", year)
     for s in grade_map_for_year.keys():
-        print(s)
-        term_grades = grade_map_for_year.get(s)
+        term_grades_for_subject = grade_map_for_year.get(s)
         # get unique subjects for each year
-        courses_for_term = set([g.course.course_title for g in term_grades])
 
+        courses_for_term = set([g.course.course_title for g in term_grades_for_subject])
+        print(courses_for_term)
         # filter for courses in this term
-        course_grades_for_term = [g for g in term_grades if g.course.course_title in courses_for_term]
+        course_grades_for_term = [g for g in term_grades_for_subject if g.course.course_title in courses_for_term]
         # for each subject, sort by term
-        report_text  = ""
         #  collect the grades for each course
-        for n in courses_for_term:
-            subject_grades = [g for g in course_grades_for_term if g.course.course_title == n]
+        # for n in courses_for_term:
+        subject_grades = [g for g in course_grades_for_term if g.course.course_title == s]
+        subject_grades.sort(key=lambda t: t.grade_details.course.period)
+        html = get_term_subject_grade_html(s, subject_grades)
+        report_text += html
+        print(report_text)
+    return report_text
 
-            subject_grades.sort(key=lambda t: t.grade_details.course.period)
-
-            report_text  += get_term_subject_grade_html(n, subject_grades)
-            print(report_text)
-        return  report_text
 
 def get_term_subject_grade_html(subject, subject_grades):
     s = """<div class='grid-container'>
             <div class='course-title'>{0}</div>""".format(subject)
     print(s)
     for gg in subject_grades:
-        s+=get_grade_html(gg.grade_details)
-    s+="</div>"
-    return  s
+        s += get_grade_html(gg.grade_details)
+    s += "</div>"
+    return s
 
 
 if __name__ == "__main__":

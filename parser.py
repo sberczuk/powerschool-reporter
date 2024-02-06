@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 import argparse
 
 from entities import Student, Course, Teacher, Grade, MarkingPeriod, Grades, Term
-import output
 
 ns = {'ns1': 'http://www.sifinfo.org/infrastructure/2.x',
       'ns2': 'http://stumo.transcriptcenter.com'}
@@ -99,13 +98,14 @@ def organize_by_term(grades):
 
 
 def extractValidXML(inFile):
+    '''open the  data file and delegate to the parser function'''
     with open(inFile, 'r') as f:
         return parse_file(f)
 
 
-# concat all of the XML lines in the file, then return it
-# Skip all up to the start of the XML
+
 def parse_file(f):
+    '''parse a powerschool file, correcting for error in the closing element'''
     result = ''
     skip = True
     for line in f:
@@ -120,6 +120,7 @@ def parse_file(f):
 
 
 def generate_html_file(file_name, body_text):
+    '''generate  an html file  with the specified name injecting body_text into the body element'''
     css_text = ''
     with open('reportCard.css') as css_file:
         css_text = css_file.read()
@@ -131,10 +132,6 @@ def generate_html_file(file_name, body_text):
         f.write("\n</body>\n</html>")
 
 
-def generate_text(grades, year):
-    pass
-
-
 def generate_report(grades):
     student_name = grades.student.display_name
     sorted_terms = sorted(grades.terms, key=lambda t: t.year)
@@ -142,12 +139,10 @@ def generate_report(grades):
     for t in sorted_terms:
         grades_by_year[t.year] = grades_by_year.get(t.year, [])
         grades_by_year[t.year].extend(t.grades)
-    print(grades_by_year)
     # group terms by year
     for y in grades_by_year.keys():
         ts = grades_by_year.get(y)
         print("*******************", y, student_name, "***************")
-        print(ts)
 
         year = y
 
@@ -157,12 +152,12 @@ def generate_report(grades):
             grade_map_for_year[g.course.course_title] = grade_map_for_year.get(g.course.course_title, [])
             grade_map_for_year[g.course.course_title].append(g)
 
-        print(grade_map_for_year)
         file_name = f"{basename}-{year}.html"
 
         #  below   returns a string?
         report_text = generate_year_report(year, grade_map_for_year)
         generate_html_file(file_name, report_text)
+        print("generated  file file://{0}".format(file_name))
 
 
 def get_grade_html(grade_details):
@@ -181,26 +176,20 @@ def generate_year_report(year, grade_map_for_year):
     print("YEAR REPORT ", year)
     for s in grade_map_for_year.keys():
         term_grades_for_subject = grade_map_for_year.get(s)
-        # get unique subjects for each year
-
+        # get  list of unique subjects for this year
         courses_for_term = set([g.course.course_title for g in term_grades_for_subject])
-        print(courses_for_term)
         # filter for courses in this term
         course_grades_for_term = [g for g in term_grades_for_subject if g.course.course_title in courses_for_term]
-        # for each subject, sort by term
         #  collect the grades for each course
-        # for n in courses_for_term:
         subject_grades = [g for g in course_grades_for_term if g.course.course_title == s]
         subject_grades.sort(key=lambda t: t.grade_details.course.period)
         html = get_term_subject_grade_html(s, subject_grades)
         report_text += html
-        print(report_text)
     return report_text
 
 
 def get_term_subject_grade_html(subject, subject_grades):
     s = """<div class='grid-container'><div class='course-title'>{0}</div>""".format(subject)
-    print(s)
     for gg in subject_grades:
         s += get_grade_html(gg.grade_details)
     s += "</div>"

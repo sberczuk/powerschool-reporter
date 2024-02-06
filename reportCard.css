@@ -23,10 +23,10 @@
                     'q1grade q2grade q3grade q4grade y1grade'
                     'q1absent q2absent q3absent q4absent y1absent'
                     'q1comment q1comment q1comment q1comment q1comment'
-                    'q2comment q2comment q2comment q2comment q2comment';
-'q3comment q3comment q3comment q3comment q3comment';
-'q4comment q4comment q4comment q4comment q4comment';
-'y1comment y1comment y1comment y1comment y1comment';
+                    'q2comment q2comment q2comment q2comment q2comment'
+                    'q3comment q3comment q3comment q3comment q3comment'
+                    'q4comment q4comment q4comment q4comment q4comment'
+                    'y1comment y1comment y1comment y1comment y1comment';
     column-gap: 10px;
 }
 

@@ -17,6 +17,7 @@
 
 .grid-container {
     display: grid;
+    grid-template-columns: repeat(5, 1fr);
     grid-template-areas:
                     'title title title title  title'
                     'q1 q2 q3 q4 y1'
@@ -28,6 +29,10 @@
                     'q4comment q4comment q4comment q4comment q4comment'
                     'y1comment y1comment y1comment y1comment y1comment';
     column-gap: 10px;
+
+    border: 1px solid black;
+    border-collapse: collapse;
+    border-style: dotted;
 }
 
 .grid-item {
@@ -94,7 +99,6 @@
 .q4 {
     grid-area: q4;
 }
-
 
 .grade-q4 {
     grid-area: q4grade;

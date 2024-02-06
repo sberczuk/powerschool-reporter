@@ -199,8 +199,7 @@ def generate_year_report(year, grade_map_for_year):
 
 
 def get_term_subject_grade_html(subject, subject_grades):
-    s = """<div class='grid-container'>
-            <div class='course-title'>{0}</div>""".format(subject)
+    s = """<div class='grid-container'><div class='course-title'>{0}</div>""".format(subject)
     print(s)
     for gg in subject_grades:
         s += get_grade_html(gg.grade_details)

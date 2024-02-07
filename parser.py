@@ -173,6 +173,8 @@ def get_grade_html(grade_details):
 
 def generate_year_report(student, year, grade_map_for_year):
     report_text = "<h1>{0.display_name} - {1}</h1>".format(student, year)
+    report_text += """<div class ='main-container'>"""
+
     print("YEAR REPORT ", year)
     for s in grade_map_for_year.keys():
         term_grades_for_subject = grade_map_for_year.get(s)
@@ -185,6 +187,9 @@ def generate_year_report(student, year, grade_map_for_year):
         subject_grades.sort(key=lambda t: t.grade_details.course.period)
         html = get_term_subject_grade_html(s, subject_grades)
         report_text += html
+
+    report_text += """</div>"""
+
     return report_text
 
 

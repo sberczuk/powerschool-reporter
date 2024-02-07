@@ -193,8 +193,10 @@ def get_term_subject_grade_html(subject, subject_grades):
     # This  assumes that we get at least one grade
     code =  subject_grades[0].course.course_code
     school  = subject_grades[0].course.teacher.school
-    s = ("""<div class='grid-container'><div class='course-title course'>{0} - {1} - {2}</div>"""
-         .format(subject,  code, school))
+    teacher  = subject_grades[0].course.teacher.display_name
+    s = ("""<div class='grid-container'><div class='course-title course'>{0} - {1} - {2}</div>
+    <div class='course-teacher teacher'>{3}</div>"""
+         .format(subject,  code, school, teacher))
     for gg in subject_grades:
         s += get_grade_html(gg.grade_details)
     s += "</div>"

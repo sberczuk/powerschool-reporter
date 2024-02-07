@@ -20,6 +20,7 @@
     grid-template-columns: repeat(5, 1fr);
     grid-template-areas:
                     'title title title title  title'
+                    'teacher teacher teacher teacher  teacher'
                     'q1 q2 q3 q4 y1'
                     'q1grade q2grade q3grade q4grade y1grade'
                     'q1absent q2absent q3absent q4absent y1absent'
@@ -51,6 +52,10 @@
 
 .course-title {
     grid-area: title;
+}
+
+.course-teacher {
+    grid-area: teacher;
 }
 
 .q1 {
@@ -149,6 +154,14 @@ body {
     margin: .25em;
     padding: 0.25em;
 }
+
+.teacher {
+    border: 1px solid black;
+    font-weight: bold ;
+    margin: .25em;
+    padding: 0.25em;
+}
+
 
 html body {
     font-size: 12pt;

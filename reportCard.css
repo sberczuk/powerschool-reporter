@@ -14,22 +14,20 @@
     }
 }
 
-.main-container{
+.main-container {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
-       border-collapse: collapse;
+    border-collapse: collapse;
+    grid-template-rows: repeat(3, 1fr);
     border-style: none;
-    /*empty-cells: hide;*/
     padding: 0;
-    grid-row-gap: 2em;
+    grid-row-gap: 3em;
 }
 
-.grid-container {
-    display: grid;
+.grade-container {
+     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-areas:
-                    'title title title title  title'
-                    'teacher teacher teacher teacher  teacher'
                     'q1 q2 q3 q4 y1'
                     'q1grade q2grade q3grade q4grade y1grade'
                     'q1absent q2absent q3absent q4absent y1absent'
@@ -39,6 +37,21 @@
                     'q4comment q4comment q4comment q4comment q4comment'
                     'y1comment y1comment y1comment y1comment y1comment';
     column-gap: 10px;
+
+    border-collapse: collapse;
+    border-style: solid;
+    /*empty-cells: hide;*/
+    padding: 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-areas:
+                    'title'
+                    'teacher'
+                    'grades';
+    column-gap: 5px;
 
     border-collapse: collapse;
     border-style: dotted;
@@ -61,6 +74,10 @@
 
 .course-title {
     grid-area: title;
+}
+
+.grade-container {
+    grid-area: grades;
 }
 
 .course-teacher {
@@ -159,14 +176,14 @@ body {
 /* The div the includes the course, grades, and comments*/
 .course {
     border: 1px solid black;
-    font-weight: bold ;
+    font-weight: bold;
     margin: .25em;
     padding: 0.25em;
 }
 
 .teacher {
     border: 1px solid black;
-    font-weight: bold ;
+    font-weight: bold;
     margin: .25em;
     padding: 0.25em;
 }

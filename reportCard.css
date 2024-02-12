@@ -50,7 +50,25 @@
     grid-template-areas:
                     'title'
                     'teacher'
-                    'grades';
+                    'grades'
+                    'comments';
+    column-gap: 5px;
+
+    border-collapse: collapse;
+    border-style: dotted;
+    /*empty-cells: hide;*/
+    padding: 0;
+}
+
+.comments-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-areas:
+                    'q1comment'
+                    'q2comment'
+                    'q3comment'
+                    'q4comment'
+                    'y1comment';
     column-gap: 5px;
 
     border-collapse: collapse;
@@ -78,6 +96,13 @@
 
 .grade-container {
     grid-area: grades;
+}
+
+
+.comments-container {
+    grid-area: comments;
+    border: black 1px solid;
+
 }
 
 .course-teacher {

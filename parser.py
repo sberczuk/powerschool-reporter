@@ -162,13 +162,13 @@ def generate_report(grades):
 
 def get_grade_html(grade_details):
     period = grade_details.course.period.lower()
+    comments = """ <div class='comments-{1}  comments'>{2}: {0.display_comments}</div>""".format(grade_details, period, period.upper())
     s = """
     <div class='{1} period'>{0.course.period}</div>
     <div class='grade-{1} grades'>{0.grade}/{0.percent}</div> 
-    <div class='absent-{1} grades'> days absent {0.days_absent}</div>
-    <div class='comments-{1}  comments'>{1}: {0.display_comments}</div>""".format(grade_details, period)
+    <div class='absent-{1} grades'> days absent {0.days_absent}</div>""".format(grade_details, period)
 
-    return s
+    return s,  comments
 
 
 def generate_year_report(student, year, grade_map_for_year):
@@ -199,15 +199,21 @@ def get_term_subject_grade_html(subject, subject_grades):
     code =  subject_grades[0].course.course_code
     school  = subject_grades[0].course.teacher.school
     teacher  = subject_grades[0].course.teacher.display_name
-    s = ("""<div class='grid-container'><div class='course-title course'>{0} - {1} - {2}</div>
-    <div class='course-teacher teacher'>{3}</div>"""
-         .format(subject,  code, school, teacher))
-    s+= "<div class='grade-container'>"
+
+    grid_html = """<div class='grid-container'>"""
+    title_html = """<div class='course-title course'>{0} - {1} - {2}</div>
+    <div class='course-teacher teacher'>{3}</div>""".format(subject,  code, school, teacher)
+    grade_html = "<div class='grade-container'>"
+    comment_html = "<div class='comments-container'>"
     for gg in subject_grades:
-        s += get_grade_html(gg.grade_details)
-    s+= "</div>"
-    s += "</div>"
-    return s
+        grades, comments =get_grade_html(gg.grade_details)
+        grade_html+= grades
+        comment_html += comments
+
+    grade_html+= "</div>"
+    comment_html+="</div>"
+    grid_html += title_html + grade_html+ comment_html+ "</div>"
+    return grid_html
 
 
 if __name__ == "__main__":

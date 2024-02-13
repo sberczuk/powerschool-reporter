@@ -1,85 +1,12 @@
 #!/usr/bin/env python3
 
-import io
 import xml.etree.ElementTree as ET
 import argparse
 
+from entities import Student, Course, Teacher, Grade, MarkingPeriod, Grades, Term
+
 ns = {'ns1': 'http://www.sifinfo.org/infrastructure/2.x',
       'ns2': 'http://stumo.transcriptcenter.com'}
-
-
-class StudentInfo:
-    def __init__(self, first_name, middle_name, last_name, ):
-        self.last_name = last_name
-        self.middle_name = middle_name
-        self.first_name = first_name
-
-
-class Grade:
-    """A Wrapper for a single grade"""
-
-    def __init__(self, year, grade_level, term, course_code, title, letter_grade, number_grade, comments, teacher_fn,
-                 teacher_ln, school_name):
-        self.teacher_ln = teacher_ln
-        self.teacher_fn = teacher_fn
-        self.comments = comments
-        self.number_grade = number_grade
-
-        # Special case for the Pandemic special grading
-        self.letter_grade =  letter_grade if letter_grade is not None else "n/a"
-        self.course_title = title
-        self.course_code = course_code
-        self.term = term
-        self.year = year
-        self.grade_level = grade_level
-        self.school = school_name
-        if (self.comments != None):
-            self.comments = self.comments.strip()
-
-    def __str__(self) -> str:
-        return f"{self.year}-{self.term} (code: {self.course_code}) {self.course_title} {self.letter_grade}, {self.number_grade}, {self.comments}, {self.teacher_fn}, {self.teacher_ln} {self.school}"
-
-    def pretty_print(self):
-        return f"###{self.year}-{self.term}  {self.school} {self.grade_level} (code: {self.course_code}) {self.course_title} | Instructor: {self.teacher_fn} {self.teacher_ln}\n*Letter Grade*: {self.letter_grade} | *Grade:* {self.number_grade}\nComments: {self.comments} "
-
-    def print_description(self):
-        return f"{self.year}-{self.term}  {self.school} {self.grade_level} (code: {self.course_code}) {self.course_title}\nInstructor: {self.teacher_fn} {self.teacher_ln}\nLetter Grade: {self.letter_grade} \nGrade: {self.number_grade}\nComments:{self.comments} "
-
-    def print_header(self):
-        return f"{self.course_title} (code: {self.course_code}) {self.school}\n"
-
-    def print_term_grade(self):
-        return f"<em>{self.year}-{self.term} {self.grade_level}</em><br/>\n<b>{self.letter_grade}</b> / <b>{self.number_grade}</b>"
-
-    def reporting_period(self):
-        return f"{self.year}-{self.term}"
-
-    def teacher_name(self):
-        return f"{self.teacher_fn} {self.teacher_ln}"
-
-    def format_comments(self):
-        if (self.comments != None):
-            return self.comments.replace('\n', ' ')
-        else:
-            return ''
-
-
-def process_course(course, year):
-    title = course.find(".//ns1:CourseTitle", ns).text
-    course_code = course.find(".//ns1:CourseCode", ns).text
-    mark_data = course.find(".//ns1:MarkData", ns)
-    grade_level = course.find(".//ns1:GradeLevelWhenTaken/ns1:Code", ns).text
-    letter_grade = mark_data.find("ns1:Letter", ns).text
-    number_grade = mark_data.find("ns1:Percentage", ns).text
-    comments = mark_data.find("ns1:Narrative", ns).text
-    # get extended info
-    extended_info = course.find("ns1:SIF_ExtendedElements", ns)
-    term = extended_info.find("ns1:SIF_ExtendedElement[@Name='StoreCode']", ns).text
-    teacher_fn = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorFirstName']", ns).text
-    teacher_ln = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorLastName']", ns).text
-    school_name = extended_info.find("ns1:SIF_ExtendedElement[@Name='SchoolName']", ns).text
-    return Grade(year, grade_level, term, course_code, title, letter_grade, number_grade, comments, teacher_fn,
-                 teacher_ln, school_name)
 
 
 # Placeholder for markdown format for a list of grades
@@ -90,93 +17,73 @@ def format_as_markdown(grades):
 
 
 def process_data(xml_string):
+    """Process all the data iin the XML file"""
     root = ET.fromstring(xml_string)
-    ns_name = '{0}StudentDemographicRecord/{0}StudentPersonalData/{0}Name'.format('ns1:')
+    student = parse_element(root, '{0}:StudentDemographicRecord'.format("ns1"), parse_student)
+    terms = parse_element(root, '{0}:StudentAcademicRecord/{0}:CourseHistory'.format('ns1'), parse_terms)
+
+    return Grades(student, terms)
+
+
+def parse_element(root, path, function):
+    """given an xpath to an element, find it, and apply function to it"""
+    node = root.find(path, namespaces=ns)
+    entity = function(node)
+    return entity
+
+
+def parse_student(root):
+    """parse the element with student data and return  a Student object"""
+    ns_name = '{0}StudentPersonalData/{0}Name'.format('ns1:')
     name = root.find(ns_name, namespaces=ns)
     fn = name.find("ns1:FirstName", namespaces=ns).text
     mi = name.find("ns1:MiddleName", namespaces=ns).text
     ln = name.find("ns1:LastName", namespaces=ns).text
-    (grades, years) = collect_grades(root)
-    return (StudentInfo(fn, mi, ln), grades, years)
+    return Student(fn, mi, ln)
 
 
-def generate_year_report(student_info, year, grades_by_course, schools, terms):
-    output = io.StringIO()
+def process_course(course_node, term, year):
+    """Process an  individual course element"""
+    extended_info = course_node.find("ns1:SIF_ExtendedElements", ns)
+    term_id = extended_info.find("ns1:SIF_ExtendedElement[@Name='StoreCode']", ns).text
+    teacher_fn = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorFirstName']", ns).text
+    teacher_ln = extended_info.find("ns1:SIF_ExtendedElement[@Name='InstructorLastName']", ns).text
+    school_name = extended_info.find("ns1:SIF_ExtendedElement[@Name='SchoolName']", ns).text
+    teacher = Teacher(teacher_fn, teacher_ln, school_name)
 
-    # Write Report Card Header
-    output.write(f"<h1> {student_info.first_name}  {student_info.middle_name} {student_info.last_name}</h1>\n")
-    output.write(f"<h1> {year}</h1>\n")
-    for s in schools:
-        output.write(f"<h2>{s}</h2>")
+    course_title = course_node.find(".//ns1:CourseTitle", ns).text
+    course_code = course_node.find(".//ns1:CourseCode", ns).text
+    grade_level = course_node.find(".//ns1:GradeLevelWhenTaken/ns1:Code", ns).text
+    course = Course(year, grade_level, term_id, course_code, course_title, teacher)
 
-    for course in grades_by_course.keys():
-        output.write('<div class="course">\n')
-        output.write(f"<h2>{headers_by_course.get(course)}</h2>")
+    mark_data = course_node.find(".//ns1:MarkData", ns)
+    letter_grade = mark_data.find("ns1:Letter", ns).text
+    number_grade = mark_data.find("ns1:Percentage", ns).text
+    comments = mark_data.find("ns1:Narrative", ns).text
+    days_absent = course_node.find(".//ns1:DaysAbsent", ns).text
 
-        course_by_term = organize_by_term(grades_by_course[course])
-
-        grades_table = generate_grades_table(course_by_term, terms)
-        output.write(grades_table)
-        comments_table = generate_comments_table(course_by_term, terms)
-        output.write(comments_table)
-        output.write("</div>\n")
-    return output.getvalue()
-
-
-def generate_grades_table(course_by_term, terms):
-    term_headers = sorted(terms)
-    with io.StringIO() as output:
-        output.write("<table class='grades'>")
-        output.write("<tr>")
-        for th in term_headers:
-            output.write(f"<th>{th}</th>")
-        output.write("</tr>")
-        output.write("<tr>")
-        for th in term_headers:
-            if (th in course_by_term):
-                g = course_by_term[th]
-                output.write(f"<td><em>{g.teacher_name()}</em><br/>\n{g.print_term_grade()}</td>")
-            else:
-                output.write(f"<td></td>")
-        output.write("</tr>")
-        output.write("</table>")
-        return output.getvalue()
+    # details = GradeDetails(letter_grade,number_grade, comments)
+    details = MarkingPeriod(course, letter_grade, number_grade, days_absent, comments)
+    return Grade(course, term, details)
 
 
-def generate_comments_table(course_by_term, terms):
-    term_headers = sorted(terms)
-    with io.StringIO() as output:
-        output.write("<table class='comments'>")
-        output.write(f"<tr><th class='cbodyterm'>Term</th><th class='cbodytext'>Comments</th></tr>")
-        for th in term_headers:
-            output.write(f"<tr><td class='cbodyterm'>{th}</td>\n")
-            if (th in course_by_term):
-                g = course_by_term[th]
-                if g.comments != None:
-                    output.write(f"<td class='cbodytext'>{g.format_comments()}</td>")
-                else:
-                    output.write(f"<td class='cbodytext'></td>")
+def parse_terms(root):
+    """parse the sub elements of Course History, which has the grade info. Returns
+    a list of Grade objects"""
+    # Path  from StudentAcademicRecord/CourseHistory
+    terms = []
+    term_nodes = root.findall("{0}Term".format("ns1:"), ns)
+    for term_node in term_nodes:
+        school_year = term_node.find("{0}TermInfoData/{0}SchoolYear".format("ns1:"), ns).text
 
-            else:
-                output.write(f"<td class='cbodytext'></td>")
-        output.write("</table>")
-        return output.getvalue()
-
-
-def collect_grades(root):
-    all_grades = []
-    all_years = []
-    findall = root.findall(".//ns1:Term", ns)
-    for term in findall:
-        year = term[0][0].text
-        if year not in all_years:
-            all_years.append(year)
-        for courses in term.iter("{http://www.sifinfo.org/infrastructure/2.x}Courses"):
-            for course in courses:
-                grade = process_course(course, year)
-                all_grades.append(grade)
-
-    return (all_grades, all_years)
+        term = Term(school_year)
+        courses_node = term_node.find("{0}Courses".format("ns1:"), ns)
+        grades = []
+        for c in courses_node.findall("{0}:Course".format("ns1"), ns):
+            grades.append(process_course(c, term, school_year))
+        term.grades = grades
+        terms.append(term)
+    return terms
 
 
 def organize_by_term(grades):
@@ -190,35 +97,15 @@ def organize_by_term(grades):
     return grades_by_term
 
 
-def organize_grades(all_grades):
-    allCoursesByName = set()
-    grades_by_course = dict()
-    grades_by_period = dict()
-    header_by_course = dict()
-
-    for grade in all_grades:
-        period = grade.reporting_period()
-        allCoursesByName.add(grade.course_title)
-        course_code = grade.course_code
-        if course_code not in grades_by_course:
-            grades_by_course[course_code] = []
-        if period not in grades_by_period:
-            grades_by_period[period] = []
-
-        grades_by_period[period].append(grade)
-        grades_by_course[course_code].append(grade)
-        header_by_course[course_code] = grade.print_header()
-    return (grades_by_course, grades_by_period, header_by_course)
-
-
 def extractValidXML(inFile):
+    '''open the  data file and delegate to the parser function'''
     with open(inFile, 'r') as f:
         return parse_file(f)
 
 
-# concat all of the XML lines in the file, then return it
-# Skip all up to the start of the XML
+
 def parse_file(f):
+    '''parse a powerschool file, correcting for error in the closing element'''
     result = ''
     skip = True
     for line in f:
@@ -233,6 +120,7 @@ def parse_file(f):
 
 
 def generate_html_file(file_name, body_text):
+    '''generate  an html file  with the specified name injecting body_text into the body element'''
     css_text = ''
     with open('reportCard.css') as css_file:
         css_text = css_file.read()
@@ -244,10 +132,96 @@ def generate_html_file(file_name, body_text):
         f.write("\n</body>\n</html>")
 
 
-if __name__ == "__main__":
-    import sys
+def generate_report(grades):
+    student_name = grades.student.display_name
+    sorted_terms = sorted(grades.terms, key=lambda t: t.year)
+    grades_by_year = {}
+    for t in sorted_terms:
+        grades_by_year[t.year] = grades_by_year.get(t.year, [])
+        grades_by_year[t.year].extend(t.grades)
+    # group terms by year
+    for y in grades_by_year.keys():
+        grades_for_year = grades_by_year.get(y)
+        print("*******************", y, student_name, "***************")
 
+        year = y
+
+        grade_map_for_year = {}
+        for g in grades_for_year:
+            # todo: is this idiomatic?
+            grade_map_for_year[g.course.course_title] = grade_map_for_year.get(g.course.course_title, [])
+            grade_map_for_year[g.course.course_title].append(g)
+
+        file_name = f"{basename}-{year}.html"
+
+        #  below   returns a string?
+        report_text = generate_year_report(grades.student, year, grade_map_for_year)
+        generate_html_file(file_name, report_text)
+        print("generated  file file://{0}".format(file_name))
+
+
+def get_grade_html(grade_details):
+    period = grade_details.course.period.lower()
+    comments = """ <div class='comments-{1}  comments'>{2}: {0.display_comments}</div>""".format(grade_details, period, period.upper())
+    s = """
+    <div class='{1} period'>{0.course.period}</div>
+    <div class='grade-{1} grades'>{0.grade}/{0.percent}</div> 
+    <div class='absent-{1} grades'> days absent {0.days_absent}</div>""".format(grade_details, period)
+
+    return s,  comments
+
+
+def generate_year_report(student, year, grade_map_for_year):
+    l = list(grade_map_for_year.values())
+    schools = set([g.course.teacher.school for ll in l  for g in ll])
+
+    schools_text = " ".join(list(schools))
+    report_text = """<div class ='main-container'>"""
+    report_text += "<h1>{0.display_name} - {1} - {2}</h1>".format(student, year, schools_text)
+    print("YEAR REPORT ", year, schools_text)
+    for s in grade_map_for_year.keys():
+        term_grades_for_subject = grade_map_for_year.get(s)
+        # get  list of unique subjects for this year
+        courses_for_term = set([g.course.course_title for g in term_grades_for_subject])
+        # filter for courses in this term
+        course_grades_for_term = [g for g in term_grades_for_subject if g.course.course_title in courses_for_term]
+        #  collect the grades for each course
+        subject_grades = [g for g in course_grades_for_term if g.course.course_title == s]
+        subject_grades.sort(key=lambda t: t.grade_details.course.period)
+        html = get_term_subject_grade_html(s, subject_grades)
+        report_text += html
+
+    report_text += """</div>"""
+
+    return report_text
+
+
+def get_term_subject_grade_html(subject, subject_grades):
+
+    # This  assumes that we get at least one grade
+    code =  subject_grades[0].course.course_code
+    school  = subject_grades[0].course.teacher.school
+    teacher  = subject_grades[0].course.teacher.display_name
+
+    grid_html = """<div class='grid-container'>"""
+    title_html = """<div class='course-title course'>{0} - {1} - {2}</div>
+    <div class='course-teacher teacher'>{3}</div>""".format(subject,  code, school, teacher)
+    grade_html = "<div class='grade-container'>"
+    comment_html = "<div class='comments-container'>"
+    for gg in subject_grades:
+        grades, comments =get_grade_html(gg.grade_details)
+        grade_html+= grades
+        comment_html += comments
+
+    grade_html+= "</div>"
+    comment_html+="</div>"
+    grid_html += title_html + grade_html+ comment_html+ "</div>"
+    return grid_html
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Report Card Generator.')
+
     parser.add_argument('--output_basename', action='store',
                         default='report_card',
                         help='Output file to report results to (default: standard out)')
@@ -256,19 +230,13 @@ if __name__ == "__main__":
     parser.add_argument('data_file')
     args = parser.parse_args()
     basename = args.output_basename
+
+    parser.add_argument('data_file')
     print("output = ", basename)
     print("parsing ", args.data_file)
 
     valid_xml = extractValidXML(args.data_file)
-    (student_info, grades, years) = process_data(valid_xml)
-    years.sort()
-
-    for year in years:
-        (grades_by_course, grades_by_period, headers_by_course) = organize_grades(
-            [a for a in grades if (a.year == year)])
-        print("*******************", year, "***************")
-        schools = [g.school for g in grades if (g.year == year)]
-        terms = [g.term for g in grades if (g.year == year)]
-        report_text = generate_year_report(student_info, year, grades_by_course, set(schools), set(terms))
-        file_name = f"{basename}-{year}.html"
-        generate_html_file(file_name, report_text)
+    grades = process_data(valid_xml)
+    # group grades by course code?
+    # for each term we want a map of course info -> grade
+    generate_report(grades)

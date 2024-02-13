@@ -18,10 +18,9 @@
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     border-collapse: collapse;
-    /*grid-template-rows: repeat(3, 1fr);*/
     border-style: none;
     padding: 0;
-    grid-row-gap: 1em;
+    grid-row-gap: 0.5em;
 }
 
 .grade-container {
@@ -40,7 +39,6 @@
 
     border-collapse: collapse;
     border-style: solid;
-    /*empty-cells: hide;*/
     padding: 0;
 }
 
@@ -70,8 +68,7 @@
                     'q3comment'
                     'q4comment'
                     'y1comment';
-    column-gap: 5px;
-
+    column-gap: 2px;
     border-collapse: collapse;
     border-style: dotted;
     /*empty-cells: hide;*/
@@ -216,7 +213,7 @@ body {
 
 
 html body {
-    font-size: 12pt;
+    font-size: 11pt;
 }
 
 li {

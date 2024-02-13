@@ -141,13 +141,13 @@ def generate_report(grades):
         grades_by_year[t.year].extend(t.grades)
     # group terms by year
     for y in grades_by_year.keys():
-        ts = grades_by_year.get(y)
+        grades_for_year = grades_by_year.get(y)
         print("*******************", y, student_name, "***************")
 
         year = y
 
         grade_map_for_year = {}
-        for g in ts:
+        for g in grades_for_year:
             # todo: is this idiomatic?
             grade_map_for_year[g.course.course_title] = grade_map_for_year.get(g.course.course_title, [])
             grade_map_for_year[g.course.course_title].append(g)
@@ -172,10 +172,13 @@ def get_grade_html(grade_details):
 
 
 def generate_year_report(student, year, grade_map_for_year):
-    report_text = """<div class ='main-container'>"""
-    report_text += "<h1>{0.display_name} - {1}</h1>".format(student, year)
+    l = list(grade_map_for_year.values())
+    schools = set([g.course.teacher.school for ll in l  for g in ll])
 
-    print("YEAR REPORT ", year)
+    schools_text = " ".join(list(schools))
+    report_text = """<div class ='main-container'>"""
+    report_text += "<h1>{0.display_name} - {1} - {2}</h1>".format(student, year, schools_text)
+    print("YEAR REPORT ", year, schools_text)
     for s in grade_map_for_year.keys():
         term_grades_for_subject = grade_map_for_year.get(s)
         # get  list of unique subjects for this year

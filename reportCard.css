@@ -18,10 +18,10 @@
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     border-collapse: collapse;
-    grid-template-rows: repeat(3, 1fr);
+    /*grid-template-rows: repeat(3, 1fr);*/
     border-style: none;
     padding: 0;
-    grid-row-gap: 3em;
+    grid-row-gap: 1em;
 }
 
 .grade-container {
@@ -53,9 +53,10 @@
                     'grades'
                     'comments';
     column-gap: 5px;
+    row-gap: 5px;
 
     border-collapse: collapse;
-    border-style: dotted;
+    border-style: inset;
     /*empty-cells: hide;*/
     padding: 0;
 }
@@ -276,7 +277,7 @@ body, p, td, div {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    line-height: 1.5em;
+    line-height: 1em;
 }
 
 a {

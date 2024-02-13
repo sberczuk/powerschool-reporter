@@ -1,4 +1,11 @@
+# TODO
 
+
+- Render PDF using [Pdf Kit](https://pypi.org/project/pdfkit/)
+- update packaging so that this is easy to  run  from a clean grab
+
+
+# DONE (delete when reviewed)
 - Fix Grid Table Layout for 2022 report to make  sure that items align  (3h)
 - Apply some basic  styling the HTML (1/2 day)
 - do a comment/tidy/pydc  pass through the code  (1/2  day)
